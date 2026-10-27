@@ -1,0 +1,6 @@
+# Håll Linux-filer med LF-radslut (annars kraschar bash i Docker)
+*.sh text eol=lf
+Dockerfile text eol=lf
+*.yml text eol=lf
+CMakeLists.txt text eol=lf
+*.urdf text eol=lf
