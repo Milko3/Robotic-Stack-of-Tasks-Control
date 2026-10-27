@@ -1,60 +1,52 @@
 # Robotic Stack-of-Tasks Control
 
-Stack-of-Tasks (prioritized task-space control) for the 7-DoF Franka Panda, in C++ with Pinocchio.
-Course project, Introduction to Robotics (DT512A).
+Equality Stack of Tasks (SoT) for the 7-DoF Franka Panda, in C++ with Pinocchio, run both as a
+standalone test and as a **ros2_control** controller shown in RViz.
+Course project C2, Introduction to Robotics (DT512A).
+
+## The stack (sot.cpp)
+
+| Priority | Task | Function |
+|---|---|---|
+| 1 | Hand yaw -> 0 | `standard_method::calculateDq1` |
+| 2 | Hand to a goal position (start + offset) | `standard_method::calculateDq2`, projected into task 1's null space |
 
 ## Setup (once)
 
-Requires Docker Desktop.
+Requires Docker Desktop. For RViz on Windows, also an X server (e.g. VcXsrv), as in the labs.
 
 ```bash
-git clone https://github.com/Milko3/Robotic-Stack-of-Tasks-Control.git
-cd Robotic-Stack-of-Tasks-Control/docker
-bash build.sh
+bash scripts/copy_meshes.sh     # Git Bash on Windows: Panda 3D models from the lab repo
+cd docker && bash build.sh      # again whenever docker/Dockerfile changes
 ```
 
-## Build and run
-
-Start the container (from the `docker/` folder):
+## 1. Standalone test
 
 ```bash
-bash run.sh
-```
-
-Inside the container:
-
-```bash
-source /opt/ros/humble/setup.bash
+cd docker && bash run.sh                     # start the container (Git Bash)
+# inside the container:
 mkdir -p /sot/build && cd /sot/build
-cmake .. && make
-./sot
+cmake .. && make && ./sot                    # prints errors every second, then PASS or FAIL
 ```
 
-After editing code, from `/sot/build`: `make && ./sot`
+## 2. On the Panda with ros2_control (RViz)
 
-The repo is mounted at `/sot` inside the container, so edits on your own computer show up immediately.
-Open a second terminal into the same container with `bash attach.sh`.
+```bash
+# inside the container:
+cd /sot/ros2 && colcon build && source install/setup.bash
+ros2 launch sot_ros sot.launch.py            # add rviz:=false without a display
+```
 
-## Code layout and ownership
+The controller (`ros2/sot_ros/src/sot_controller.cpp`) includes `sot.cpp` and calls
+`calculateDq1` and `calculateDq2` every 2 ms. RViz shows the arm, the goal (orange sphere)
+and a line from the hand to the goal. The goal offset is set in `ros2/sot_ros/config/controllers.yaml`.
 
-| File | Owner | What |
-|---|---|---|
-| `include/sot_types.hpp` | **shared** | `Task` and `Scenario` structs: the contract between all parts |
-| `include/sot_core.hpp`, `src/sot_core.cpp` | **A** | `dpinv`, `nullspaceProjector`, `sotStep`, `flatStep` |
-| `include/robot.hpp`, `src/robot.cpp` | **B** | Load Panda, forward kinematics, frame Jacobians |
-| `include/tasks.hpp`, `src/tasks.cpp` | **B** | Tasks: EE position, EE orientation, elbow height, posture |
-| `src/main.cpp` | **C** | Simulation loop, scenarios A / B / B_flat, logging, later ROS 2 control |
-| `models/panda.urdf` | shared | Panda arm (no hand), generated from the course `franka_gazebo` xacro |
-| `docker/` | shared | ROS 2 Humble + Pinocchio environment |
+Record and plot a run (second terminal: `bash docker/attach.sh`):
 
-Python reference for everything: `step1_prototype/sot_panda.py` and `panda_kin.py`.
-Pinocchio's kinematics have been checked against `panda_kin.py`: same EE position, elbow height and Jacobian at `Q_READY`.
+```bash
+cd /sot && bash scripts/record_ros.sh test   # while the controller runs -> results/ros_test.csv
+gnuplot scripts/plot_ros.gp                  # -> results/ros_errors.png
+```
 
-Functions marked `TODO (A)`, `TODO (B)`, `TODO (C)` are stubs that compile but return zeros.
-
-## Git rules
-
-- Work on your own branch from `start1`, e.g. `core` (A), `tasks` (B), `sim` (C).
-- Only edit the files you own.
-- Changing `sot_types.hpp`, a header signature, or `CMakeLists.txt`? Tell the group first.
-- `git pull origin start1` often; merge back with small pull requests.
+After editing `sot.cpp`: `make` in `/sot/build` for the test, and `colcon build` in `/sot/ros2`
+for the controller.

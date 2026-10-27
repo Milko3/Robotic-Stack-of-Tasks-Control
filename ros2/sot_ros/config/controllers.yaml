@@ -1,0 +1,24 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 500  # Hz, same step (2 ms) as the test in sot.cpp
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    sot_controller:
+      type: sot_ros/SotController
+
+sot_controller:
+  ros__parameters:
+    joints:
+      - panda_joint1
+      - panda_joint2
+      - panda_joint3
+      - panda_joint4
+      - panda_joint5
+      - panda_joint6
+      - panda_joint7
+    ee_frame: panda_link7
+    goal_offset: [0.35, 0.0, 0.33]   # goal = hand start position + this [m]
+    max_joint_speed: 2.0              # [rad/s]
+    publish_rate: 50.0

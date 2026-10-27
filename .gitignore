@@ -1,3 +1,11 @@
 build/
 install/
 log/
+
+# CMake files created when cmake is run outside build/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+ros2/Makefile
+ros2/cmake/
+ros2/sot

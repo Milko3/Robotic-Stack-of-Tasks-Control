@@ -1,0 +1,5 @@
+<library path="sot_controller">
+  <class name="sot_ros/SotController" type="sot_ros::SotController" base_class_type="controller_interface::ControllerInterface">
+    <description>Equality Stack of Tasks velocity controller for the Panda (uses sot.cpp)</description>
+  </class>
+</library>
