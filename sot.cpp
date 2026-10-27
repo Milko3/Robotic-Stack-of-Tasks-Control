@@ -45,17 +45,17 @@ class standard_method{
     Eigen::VectorXd dQ1;
     Eigen::VectorXd dQ2;
 public:
-    Eigen::MatrixXd calculateProjection(){
-        int n = mo.jacobian.cols();                           
+    Eigen::MatrixXd calculateProjection(const Eigen::MatrixXd& J){
+        int n = J.cols();                           
         Eigen::MatrixXd I = Eigen::MatrixXd::Identity(n, n);
-        Eigen::MatrixXd Projection = I - mo.findPsuedoInverse(mo.jacobian) * mo.jacobian;
+        Eigen::MatrixXd Projection = I - mo.findPsuedoInverse(J) * J;
         return Projection;
     }
     
     Eigen::VectorXd calculateDq1(const pinocchio::Model& model, pinocchio::Data& data, const Eigen::VectorXd& q, int endEffectorFrameID){
         mo.set_jacobian(model, data, q, endEffectorFrameID);
         Eigen::VectorXd dq0 = Eigen::VectorXd::Zero(mo.jacobian.cols());
-        Eigen::MatrixXd Jz = mo.jacobian.row(3);              
+        Eigen::MatrixXd Jz = mo.jacobian.row(5);         
         double dTheta = get_dTheta(data, endEffectorFrameID);
 
         dQ1 = dq0 + mo.findPsuedoInverse(Jz) * (dTheta - (Jz * dq0)(0));
@@ -66,9 +66,9 @@ public:
         mo.set_jacobian(model, data, q, endEffectorFrameID);
         Eigen::MatrixXd Jxyz = mo.jacobian.block(0, 0, 3, mo.jacobian.cols()); 
         Eigen::Vector3d dxyz = get_d_xyz(data, endEffectorFrameID, goalXYZ);    
-
+        Eigen::MatrixXd Jz = mo.jacobian.row(5); 
         
-        Eigen::MatrixXd P1 = calculateProjection();
+        Eigen::MatrixXd P1 = calculateProjection(Jz);
         Eigen::MatrixXd Jxyz_proj = Jxyz * P1;
         
         dQ2 = dq1 + mo.findPsuedoInverse(Jxyz_proj) * (dxyz - (Jxyz * dq1));
