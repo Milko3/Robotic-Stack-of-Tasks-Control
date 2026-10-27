@@ -8,7 +8,7 @@
   <xacro:panda_arm arm_id="panda" safety_distance="0.03" connected_to="world" description_pkg="sot_ros"/>
 
   <!-- Start configuration, same as Q_START in sot.cpp -->
-  <xacro:property name="q_start" value="${[0.0, -0.4, 0.0, -1.8, 0.0, 1.4, 0.7]}"/>
+  <xacro:property name="q_start" value="${[0.0, 0.2, 0.0, -1.6, 0.0, 1.8, 0.7]}"/>
 
   <ros2_control name="PandaMockHardware" type="system">
     <hardware>

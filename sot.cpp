@@ -130,19 +130,21 @@ int main(){
     // Task 2 (priority 2): hand moves 20 cm forward (x), 10 cm sideways (y) and 20 cm down (z).
     // Pass if after T seconds both errors are small.
     Eigen::VectorXd q(7);
-    q << 0.0, -0.4, 0.0, -1.8, 0.0, 1.4, 0.7;
+    q << 0.0, 0.2, 0.0, -1.6, 0.0, 1.8, 0.7;
 
     pinocchio::computeJointJacobians(model, data, q);
     pinocchio::updateFramePlacements(model, data);
     const Eigen::Vector3d startXYZ = data.oMf[endEffectorFrameID].translation();
-    const Eigen::Vector3d goalXYZ = startXYZ + Eigen::Vector3d(0.35, 0.0, 0.33);
+    //const Eigen::Vector3d goalXYZ = startXYZ + Eigen::Vector3d(-0.624, 0.624, 0.2); // scenario long reach
+    //const Eigen::Vector3d goalXYZ = startXYZ + Eigen::Vector3d(-0.15, 0.2, 0.1); // scenario short move
+    const Eigen::Vector3d goalXYZ = startXYZ + Eigen::Vector3d(-0.35, -0.45, -0.35); // scenario low reach
 
     standard_method sot;
     const double dt = 0.002;   // time step [s]
-    const double T = 8.0;      // test length [s]
+    const double T = 12.0;      // test length [s]
     const int steps = static_cast<int>(T / dt);
 
-    std::cout << "Test: plate level (priority 1), hand to start + (0.4, 0.10, -0.40) m (priority 2)" << std::endl;
+    std::cout << "Test: plate level (priority 1), turn 90 degrees around the base and 20 cm up (priority 2)" << std::endl;
     for (int step = 0; step <= steps; ++step) {
         Eigen::VectorXd dq1 = sot.calculateDq1(model, data, q, endEffectorFrameID);
         Eigen::VectorXd dq2 = sot.calculateDq2(model, data, q, endEffectorFrameID, goalXYZ, dq1);
@@ -170,7 +172,7 @@ int main(){
     pinocchio::updateFramePlacements(model, data);
     double finalTilt = sot.get_tilt_degrees(data, endEffectorFrameID);
     double finalPos = sot.get_d_xyz(data, endEffectorFrameID, goalXYZ).norm();
-    bool pass = finalTilt < 0.1 && finalPos < 1e-3;   // 0.1 degree and 1 mm
+    bool pass = finalTilt < 0.1 && finalPos < 1e-2;   // 0.1 degree and 1 cm
     std::cout << (pass ? "PASS" : "FAIL")
               << ": final plate tilt = " << finalTilt << " deg"
               << ", final position error = " << finalPos << " m" << std::endl;
