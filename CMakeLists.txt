@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.22)
+project(sot CXX)
+set(CMAKE_CXX_STANDARD 20)
+find_package(pinocchio REQUIRED)
+add_executable(sot sot.cpp)
+target_link_libraries(sot PRIVATE pinocchio::pinocchio)
